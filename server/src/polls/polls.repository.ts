@@ -39,11 +39,11 @@ export class PollsRepository {
         const key = `polls:${pollID}`;
 
         try {
-            await this.redisClient
-                .multi()
-                .set(key, JSON.stringify(initialPoll))
-                .expire(key, parseInt(this.ttl))
-                .exec();
+            // Use JSON.SET to set the initial poll
+            await this.redisClient.sendCommand(
+                new Redis.Command('JSON.SET', [key, '.', JSON.stringify(initialPoll)])
+            );
+            await this.redisClient.expire(key, parseInt(this.ttl));
             return initialPoll;
         } catch (e) {
             this.logger.error(
